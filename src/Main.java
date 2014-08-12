@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +20,12 @@ public class Main {
 	
 	public static void main(String[] args) {
 		count(readUrl("urls.txt"), "Gaza", "-w", "-c");
+// 		try { 			
+// 			String[] arr = Arrays.copyOfRange(args, 2, args.length);
+// 			count(readUrl(args[0]), args[1], arr);
+// 		} catch (IllegalArgumentException e) { 			
+// 		
+// 		}
 	}
 	
 	public static String getURLContent(URL url) throws IOException {
@@ -81,25 +88,18 @@ public class Main {
 		}
 		
 		for (String url : readUrl("urls.txt")) {
-			StringReader r = null;
-			try {
-				URL ur = new URL(url);
+			try (StringReader r = new StringReader(getURLContent(new URL(url)))) {
 				MyCallBack callBack = new MyCallBack();
 				
-				r = new StringReader(getURLContent(ur));
 				HTMLEditorKit.Parser parser = new HTMLParse().getParser();
 				parser.parse(r, callBack, true);
 				
-				Writer writer = null;
-				try {
-					writer = new BufferedWriter(new OutputStreamWriter(
-							new FileOutputStream("filename.txt"), "utf-8"));
+				try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream("filename.txt"), "utf-8"))) {
 					writer.write(callBack.getStr());
 				} catch (IOException ex) {
 					System.out.println("1");
-				} finally {
-					try {writer.close();} catch (Exception ex) {}
-				}
+				} 
 				
 				String str = callBack.getStr();
 				Pattern p = Pattern.compile(wordToFind);
@@ -113,10 +113,6 @@ public class Main {
 				printInfo(url, wordToFind, count, str.length(), printOccurrence, printCharNumber);
 			} catch (IOException ioex) {
 				System.out.println("IOException in count");
-			} finally {
-				if (r != null) {				
-					r.close();
-				}
 			}
 		}
 		printInfo("TOTAL", wordToFind, totalCount, totalCharNumber, printOccurrence, printCharNumber);

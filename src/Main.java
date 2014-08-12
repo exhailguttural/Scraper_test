@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
@@ -18,23 +19,33 @@ public class Main {
 	public static void main(String[] args) {
 		try {
 			URL ur = new URL("http://www.cnn.com");
+			String str = "";
+
+			StringReader r = new StringReader(getURLContent(ur));
+			HTMLEditorKit.Parser parser = new HTMLParse().getParser();
+			parser.parse(r, new HTMLEditorKit.ParserCallback() {
+				public void handleText(char[] data,int pos) {
+					String b = new String(data);
+					str.concat(b);
+//					System.out.println(b);
+				}
+			}, true);
 			
-//			Parser prsr = new Parser()
-			  
 			Writer writer = null;
 			try {
 			    writer = new BufferedWriter(new OutputStreamWriter(
 			    		new FileOutputStream("filename.txt"), "utf-8"));
-			    writer.append(getURLContent(ur));
-			    writer.write("");
-			    } catch (IOException ex) {
-			    	//catch
-			    	} finally {
-			    		try {writer.close();} catch (Exception ex) {}
-			    	}
-			} catch (IOException ioex) {
-				//catch
+//			    writer.append(str);
+//			    writer.write("");
+			    writer.write(str);
+			} catch (IOException ex) {
+				System.out.println("1");
+			} finally {
+				try {writer.close();} catch (Exception ex) {}
 			}
+		} catch (IOException ioex) {
+			System.out.println("2");
+		}
 	}
 	
 	public static /*CharSequence*/String getURLContent(URL url) throws IOException {
@@ -58,12 +69,4 @@ public class Main {
 		return sb.toString();
 		//return sb;
 		}
-	
-	class HTMLParse extends HTMLEditorKit
-	{
-	  public HTMLEditorKit.Parser getParser()
-	  {
-	    return super.getParser();
-	  }
-	}
 }

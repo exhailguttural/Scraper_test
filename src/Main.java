@@ -17,19 +17,14 @@ import javax.swing.text.html.HTMLEditorKit;
 public class Main {
 
 	public static void main(String[] args) {
+//		String str = "";
 		try {
 			URL ur = new URL("http://www.cnn.com");
-			String str = "";
+			MyCallBack callBack = new MyCallBack();
 
 			StringReader r = new StringReader(getURLContent(ur));
 			HTMLEditorKit.Parser parser = new HTMLParse().getParser();
-			parser.parse(r, new HTMLEditorKit.ParserCallback() {
-				public void handleText(char[] data,int pos) {
-					String b = new String(data);
-					str.concat(b);
-//					System.out.println(b);
-				}
-			}, true);
+			parser.parse(r, callBack, true);
 			
 			Writer writer = null;
 			try {
@@ -37,7 +32,8 @@ public class Main {
 			    		new FileOutputStream("filename.txt"), "utf-8"));
 //			    writer.append(str);
 //			    writer.write("");
-			    writer.write(str);
+//			    System.out.println(callBack.getStr());
+			    writer.write(callBack.getStr());
 			} catch (IOException ex) {
 				System.out.println("1");
 			} finally {

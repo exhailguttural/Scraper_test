@@ -8,6 +8,8 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.text.html.HTMLEditorKit;
 
@@ -17,7 +19,6 @@ import javax.swing.text.html.HTMLEditorKit;
 public class Main {
 
 	public static void main(String[] args) {
-//		String str = "";
 		try {
 			URL ur = new URL("http://www.cnn.com");
 			MyCallBack callBack = new MyCallBack();
@@ -30,15 +31,21 @@ public class Main {
 			try {
 			    writer = new BufferedWriter(new OutputStreamWriter(
 			    		new FileOutputStream("filename.txt"), "utf-8"));
-//			    writer.append(str);
-//			    writer.write("");
-//			    System.out.println(callBack.getStr());
 			    writer.write(callBack.getStr());
 			} catch (IOException ex) {
 				System.out.println("1");
 			} finally {
 				try {writer.close();} catch (Exception ex) {}
 			}
+			
+			String str = callBack.getStr();
+		    Pattern p = Pattern.compile("Gaza");
+		    Matcher m = p.matcher(str);
+		    int count = 0;
+		    while (m.find()){
+		    	count++;
+		    }
+		    System.out.println(count);
 		} catch (IOException ioex) {
 			System.out.println("2");
 		}

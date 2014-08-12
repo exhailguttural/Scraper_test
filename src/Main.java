@@ -13,17 +13,15 @@ import java.util.regex.Pattern;
 
 import javax.swing.text.html.HTMLEditorKit;
 
-//import javax.swing.text.html.parser.Parser;
-
-
 public class Main {
 
 	public static void main(String[] args) {
+		StringReader r = null;
 		try {
 			URL ur = new URL("http://www.cnn.com");
 			MyCallBack callBack = new MyCallBack();
 
-			StringReader r = new StringReader(getURLContent(ur));
+			r = new StringReader(getURLContent(ur));
 			HTMLEditorKit.Parser parser = new HTMLParse().getParser();
 			parser.parse(r, callBack, true);
 			
@@ -48,6 +46,8 @@ public class Main {
 		    System.out.println(count);
 		} catch (IOException ioex) {
 			System.out.println("2");
+		} finally {
+			r.close();
 		}
 	}
 	

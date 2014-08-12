@@ -18,7 +18,7 @@ import javax.swing.text.html.HTMLEditorKit;
 public class Main {
 	
 	public static void main(String[] args) {
-		count(readUrl("urls.txt"), "Gaza");
+		count(readUrl("urls.txt"), "Gaza", "-w", "-c");
 	}
 	
 	public static String getURLContent(URL url) throws IOException {
@@ -62,9 +62,23 @@ public class Main {
 		return urlList;
 	}
 	
-	public static void count(ArrayList<String> urls, String wordToFind) {
+	public static void count(ArrayList<String> urls, String wordToFind, String... commands) {
 		int totalCount = 0;
 		int totalCharNumber = 0;
+		boolean printOccurrence = false;
+		boolean printCharNumber = false;
+		for (String command : commands) {
+			switch (command) {
+			case "-w":
+				printOccurrence = true;
+				break;
+			case "-c":
+				printCharNumber = true;
+				break;
+			case "-e":
+				break;
+			}
+		}
 		
 		for (String url : readUrl("urls.txt")) {
 			StringReader r = null;
@@ -96,7 +110,7 @@ public class Main {
 				}
 				totalCount += count;
 				totalCharNumber += str.length();
-				printInfo(url, wordToFind, count, str.length(), true, true);
+				printInfo(url, wordToFind, count, str.length(), printOccurrence, printCharNumber);
 			} catch (IOException ioex) {
 				System.out.println("IOException in count");
 			} finally {
@@ -105,7 +119,7 @@ public class Main {
 				}
 			}
 		}
-		printInfo("TOTAL", wordToFind, totalCount, totalCharNumber, true, true);
+		printInfo("TOTAL", wordToFind, totalCount, totalCharNumber, printOccurrence, printCharNumber);
 	}
 	
 	public static void printInfo(String title
@@ -114,12 +128,14 @@ public class Main {
 							   , int charNumber
 							   , boolean printOccurrence
 							   , boolean printCharNumber) {
+		StringBuilder sb = new StringBuilder();
 		System.out.println(title);
 		if (printOccurrence) {			
-			System.out.print("word " + word +" occurrences: " + wordCount + " ");
+			sb.append("word " + word +" occurrences: " + wordCount + " ");
 		}
 		if (printCharNumber) {			
-			System.out.println("total number of characters " + charNumber);
+			sb.append("total number of characters " + charNumber);
 		}
+		System.out.println(sb);
 	}
 }

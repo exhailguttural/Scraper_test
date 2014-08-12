@@ -87,19 +87,19 @@ public class Main {
 			}
 		}
 		
-		for (String url : readUrl("urls.txt")) {
+		for (String url : urls) {
 			try (StringReader r = new StringReader(getURLContent(new URL(url)))) {
 				MyCallBack callBack = new MyCallBack();
 				
 				HTMLEditorKit.Parser parser = new HTMLParse().getParser();
 				parser.parse(r, callBack, true);
 				
-				try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-						new FileOutputStream("filename.txt"), "utf-8"))) {
-					writer.write(callBack.getStr());
-				} catch (IOException ex) {
-					System.out.println("1");
-				} 
+//				try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+//						new FileOutputStream("filename.txt"), "utf-8"))) {
+//					writer.write(callBack.getStr());
+//				} catch (IOException ex) {
+//					System.out.println("1");
+//				} 
 				
 				String str = callBack.getStr();
 				Pattern p = Pattern.compile(wordToFind);

@@ -19,13 +19,25 @@ import javax.swing.text.html.HTMLEditorKit;
 public class Main {
 	
 	public static void main(String[] args) {
-		count(readUrl("urls.txt"), "Gaza", "-w", "-c");
-// 		try { 			
-// 			String[] arr = Arrays.copyOfRange(args, 2, args.length);
-// 			count(readUrl(args[0]), args[1], arr);
-// 		} catch (IllegalArgumentException e) { 			
-// 		
-// 		}
+		String[] a = {"Gaza", "who"};
+		String[] b = {"-w", "-c"};
+		count(readUrl("urls.txt"), a, b);
+		
+//		int firstCommandIndex = 2; //2 because first parameter is url and at least one parameter (second) is word to find
+//		for (int i = firstCommandIndex; i < args.length; i++) {
+//			if (args[i].startsWith("-")) {
+//				firstCommandIndex = i;
+//				break;
+//			}
+//		}
+//		
+//		try {			
+//			String[] soughtWordsArray = Arrays.copyOfRange(args, 1, firstCommandIndex - 1);
+//			String[] comandArray = Arrays.copyOfRange(args, firstCommandIndex, args.length);
+//			count(readUrl(args[0]), soughtWordsArray, comandArray);
+//		} catch (IndexOutOfBoundsException e) {
+//			
+//		}
 	}
 	
 	public static String getURLContent(URL url) throws IOException {
@@ -49,7 +61,7 @@ public class Main {
 		return sb.toString();
 	}
 	
-	public static ArrayList<String> readUrl(String str) {
+	public static String[] readUrl(String str) {
 		ArrayList<String> urlList = new ArrayList<>();
 		if (str.endsWith(".txt")) {
 			try (BufferedReader br = new BufferedReader(new FileReader(str)))
@@ -66,72 +78,62 @@ public class Main {
 		} else {
 			urlList.add(str);
 		}
-		return urlList;
+		return urlList.toArray(new String[urlList.size()]);
 	}
 	
-	public static void count(ArrayList<String> urls, String wordToFind, String... commands) {
+	public static void count(String[] urls, String[] wordsToFind, String[] commands) {
 		int totalCount = 0;
 		int totalCharNumber = 0;
-		boolean printOccurrence = false;
-		boolean printCharNumber = false;
-		for (String command : commands) {
-			switch (command) {
-			case "-w":
-				printOccurrence = true;
-				break;
-			case "-c":
-				printCharNumber = true;
-				break;
-			case "-e":
-				break;
+		boolean applyWCommand = Arrays.asList(commands).contains("-w");
+		boolean applyCCommand = Arrays.asList(commands).contains("-c");
+		boolean applyVCommand = Arrays.asList(commands).contains("-v");
+		boolean applyECommand = Arrays.asList(commands).contains("-e");
+		
+		StringBuilder words = new StringBuilder();
+		for (int i = 0; i < wordsToFind.length; i++) {
+			words.append(wordsToFind[i]);
+			if (i != wordsToFind.length - 1) {
+				words.append(" | ");
 			}
 		}
 		
 		for (String url : urls) {
+			System.out.println(url);
 			try (StringReader r = new StringReader(getURLContent(new URL(url)))) {
 				MyCallBack callBack = new MyCallBack();
 				
 				HTMLEditorKit.Parser parser = new HTMLParse().getParser();
 				parser.parse(r, callBack, true);
 				
-//				try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-//						new FileOutputStream("filename.txt"), "utf-8"))) {
-//					writer.write(callBack.getStr());
-//				} catch (IOException ex) {
-//					System.out.println("1");
-//				} 
-				
 				String str = callBack.getStr();
-				Pattern p = Pattern.compile(wordToFind);
-				Matcher m = p.matcher(str);
-				int count = 0;
-				while (m.find()){
-					count++;
+				
+				if (applyWCommand) {					
+					Pattern p = Pattern.compile(words.toString());
+					Matcher m = p.matcher(str);
+					int count = 0;
+					while (m.find()){
+						count++;
+					}
+					totalCount += count;
+					words.toString().replace(" | ", ", ");
+					System.out.println("number of words " + words.toString().replace(" | ", ", ") + ": " + count);
 				}
-				totalCount += count;
-				totalCharNumber += str.length();
-				printInfo(url, wordToFind, count, str.length(), printOccurrence, printCharNumber);
+				
+				if (applyCCommand) {					
+					totalCharNumber += str.length();
+					System.out.print("total char number: " + str.length());
+				}
 			} catch (IOException ioex) {
 				System.out.println("IOException in count");
 			}
+			System.out.println();
 		}
-		printInfo("TOTAL", wordToFind, totalCount, totalCharNumber, printOccurrence, printCharNumber);
-	}
-	
-	public static void printInfo(String title
-							   , String word
-							   , int wordCount
-							   , int charNumber
-							   , boolean printOccurrence
-							   , boolean printCharNumber) {
-		StringBuilder sb = new StringBuilder();
-		System.out.println(title);
-		if (printOccurrence) {			
-			sb.append("word " + word +" occurrences: " + wordCount + " ");
+		System.out.println("TOTAL");
+		if (applyWCommand) {
+			System.out.println("number of words " + words.toString().replace(" | ", ", ") + ": " + totalCount);
 		}
-		if (printCharNumber) {			
-			sb.append("total number of characters " + charNumber);
+		if (applyWCommand) {
+			System.out.print("total char number: " + totalCharNumber);
 		}
-		System.out.println(sb);
 	}
 }

@@ -1,12 +1,9 @@
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,25 +12,14 @@ import javax.swing.text.html.HTMLEditorKit;
 public class Main {
 	
 	public static void main(String[] args) {
-		String[] a = {"Gaza", "who"};
-		String[] b = {"-w", "-c"};
-		count(readUrl("urls.txt"), a, b);
-		
-//		int firstCommandIndex = 2; //2 because first parameter is url and at least one parameter (second) is word to find
-//		for (int i = firstCommandIndex; i < args.length; i++) {
-//			if (args[i].startsWith("-")) {
-//				firstCommandIndex = i;
-//				break;
-//			}
-//		}
-//		
-//		try {			
-//			String[] soughtWordsArray = Arrays.copyOfRange(args, 1, firstCommandIndex - 1);
-//			String[] comandArray = Arrays.copyOfRange(args, firstCommandIndex, args.length);
-//			count(readUrl(args[0]), soughtWordsArray, comandArray);
-//		} catch (IndexOutOfBoundsException e) {
-//			
-//		}
+//		EntryDataParser entryDataParser = new EntryDataParser(args);
+		String[] argsq = {"urls.txt", "Gaza, who", "-w", "-c"};
+		InputDataParser entryDataParser = new InputDataParser(argsq);
+		if (entryDataParser.chekInputData()) {
+			count(entryDataParser);
+		} else {
+			System.out.println("invalid input");
+		}
 	}
 	
 	public static String getURLContent(URL url) throws IOException {
@@ -57,43 +43,13 @@ public class Main {
 		return sb.toString();
 	}
 	
-	public static String[] readUrl(String str) {
-		ArrayList<String> urlList = new ArrayList<>();
-		if (str.endsWith(".txt")) {
-			try (BufferedReader br = new BufferedReader(new FileReader(str)))
-			{
-				String sCurrentLine;
-	 
-				while ((sCurrentLine = br.readLine()) != null) {
-					urlList.add(sCurrentLine);
-				}
-	 
-			} catch (IOException e) {
-				e.printStackTrace();
-			} 
-		} else {
-			urlList.add(str);
-		}
-		return urlList.toArray(new String[urlList.size()]);
-	}
-	
-	public static void count(String[] urls, String[] wordsToFind, String[] commands) {
+	public static void count(InputDataParser entryDataParser) {
 		int totalCount = 0;
 		int totalCharNumber = 0;
-		boolean applyWCommand = Arrays.asList(commands).contains("-w");
-		boolean applyCCommand = Arrays.asList(commands).contains("-c");
-		boolean applyVCommand = Arrays.asList(commands).contains("-v");
-		boolean applyECommand = Arrays.asList(commands).contains("-e");
 		
-		StringBuilder words = new StringBuilder();
-		for (int i = 0; i < wordsToFind.length; i++) {
-			words.append(wordsToFind[i]);
-			if (i != wordsToFind.length - 1) {
-				words.append(" | ");
-			}
-		}
+		String wordsToFindPattern = entryDataParser.getSearchWords().replace(", ", " | ");
 		
-		for (String url : urls) {
+		for (String url : entryDataParser.getUrls()) {
 			System.out.println(url);
 			try (StringReader r = new StringReader(getURLContent(new URL(url)))) {
 				MyCallBack callBack = new MyCallBack();
@@ -103,19 +59,18 @@ public class Main {
 				
 				String str = callBack.getStr();
 				
-				if (applyWCommand) {					
-					Pattern p = Pattern.compile(words.toString());
-					Matcher m = p.matcher(str);
+				if (entryDataParser.applyWCommand()) {					
+					Pattern p = Pattern.compile(wordsToFindPattern);
+					Matcher m = p.matcher(str); //составить регулярку чтоб определял слова только окруженные пробелами
 					int count = 0;
 					while (m.find()){
 						count++;
 					}
 					totalCount += count;
-					words.toString().replace(" | ", ", ");
-					System.out.println("number of words " + words.toString().replace(" | ", ", ") + ": " + count);
+					System.out.println("number of words " + entryDataParser.getSearchWords() + ": " + count);
 				}
 				
-				if (applyCCommand) {					
+				if (entryDataParser.applyCCommand()) {					
 					totalCharNumber += str.length();
 					System.out.print("total char number: " + str.length());
 				}
@@ -125,10 +80,10 @@ public class Main {
 			System.out.println();
 		}
 		System.out.println("TOTAL");
-		if (applyWCommand) {
-			System.out.println("number of words " + words.toString().replace(" | ", ", ") + ": " + totalCount);
+		if (entryDataParser.applyWCommand()) {
+			System.out.println("number of words " + entryDataParser.getSearchWords() + ": " + totalCount);
 		}
-		if (applyWCommand) {
+		if (entryDataParser.applyCCommand()) {
 			System.out.print("total char number: " + totalCharNumber);
 		}
 	}

@@ -47,7 +47,9 @@ public class Main {
 		int totalCount = 0;
 		int totalCharNumber = 0;
 		
-		String wordsToFindPattern = entryDataParser.getSearchWords().replace(", ", " | ");
+//		String wordsToFindPattern = entryDataParser.getSearchWords().replace(", ", " | ");
+//		entryDataParser.getSearchWords().
+		String wordsToFindPattern = "\\bGaza\\b|\\bwho\\b";
 		
 		for (String url : entryDataParser.getUrls()) {
 			System.out.println(url);
@@ -57,11 +59,11 @@ public class Main {
 				HTMLEditorKit.Parser parser = new HTMLParse().getParser();
 				parser.parse(r, callBack, true);
 				
-				String str = callBack.getStr();
+				String stringFromUrl = callBack.getStr();
 				
 				if (entryDataParser.applyWCommand()) {					
-					Pattern p = Pattern.compile(wordsToFindPattern);
-					Matcher m = p.matcher(str); //составить регулярку чтоб определял слова только окруженные пробелами
+					Pattern p = Pattern.compile(wordsToFindPattern, Pattern.CASE_INSENSITIVE);
+					Matcher m = p.matcher(stringFromUrl);
 					int count = 0;
 					while (m.find()){
 						count++;
@@ -71,8 +73,8 @@ public class Main {
 				}
 				
 				if (entryDataParser.applyCCommand()) {					
-					totalCharNumber += str.length();
-					System.out.print("total char number: " + str.length());
+					totalCharNumber += stringFromUrl.length();
+					System.out.print("total char number: " + stringFromUrl.length());
 				}
 			} catch (IOException ioex) {
 				System.out.println("IOException in count");

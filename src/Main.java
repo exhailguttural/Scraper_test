@@ -10,11 +10,12 @@ import java.util.regex.Pattern;
 import javax.swing.text.html.HTMLEditorKit;
 
 public class Main {
+	private static long timeScraping;
+	private static long totalTimeScraping;
+	private static long totalTimeProcessing;
 	
 	public static void main(String[] args) {
-//		EntryDataParser entryDataParser = new EntryDataParser(args);
-		String[] argsq = {"urls.txt", "Gaza, who", "-w", "-c"};
-		InputDataParser entryDataParser = new InputDataParser(argsq);
+		InputDataParser entryDataParser = new InputDataParser(args);
 		if (entryDataParser.chekInputData()) {
 			count(entryDataParser);
 		} else {
@@ -23,6 +24,7 @@ public class Main {
 	}
 	
 	public static String getURLContent(URL url) throws IOException {
+		long start = System.currentTimeMillis();
 		URLConnection conn = url.openConnection();
 		String encoding = conn.getContentEncoding();
 		if (encoding == null) {
@@ -40,6 +42,7 @@ public class Main {
 		} finally {
 			br.close();
 		}
+		timeScraping = System.currentTimeMillis() - start;
 		return sb.toString();
 	}
 	
@@ -47,9 +50,14 @@ public class Main {
 		int totalCount = 0;
 		int totalCharNumber = 0;
 		
-//		String wordsToFindPattern = entryDataParser.getSearchWords().replace(", ", " | ");
-//		entryDataParser.getSearchWords().
-		String wordsToFindPattern = "\\bGaza\\b|\\bwho\\b";
+		String wordsToFindPattern = entryDataParser.getSearchWords().replace(", ", "|");
+		Pattern wordPattern = Pattern.compile("[a-zA-Z0-9]+");
+		Matcher wordMatcher = wordPattern.matcher(wordsToFindPattern);
+		while (wordMatcher.find()){
+			wordsToFindPattern = wordsToFindPattern.toString().replace(wordMatcher.group(), "\\b" + wordMatcher.group() + "\\b");
+		}
+		
+		Pattern searchWordPattern = Pattern.compile(wordsToFindPattern, Pattern.CASE_INSENSITIVE);
 		
 		for (String url : entryDataParser.getUrls()) {
 			System.out.println(url);
@@ -57,15 +65,14 @@ public class Main {
 				MyCallBack callBack = new MyCallBack();
 				
 				HTMLEditorKit.Parser parser = new HTMLParse().getParser();
-				parser.parse(r, callBack, true);
+				parser.parse(r, callBack.measureTime(), true);
 				
 				String stringFromUrl = callBack.getStr();
 				
-				if (entryDataParser.applyWCommand()) {					
-					Pattern p = Pattern.compile(wordsToFindPattern, Pattern.CASE_INSENSITIVE);
-					Matcher m = p.matcher(stringFromUrl);
+				if (entryDataParser.applyWCommand()) {
+					Matcher searchWordMatcher = searchWordPattern.matcher(stringFromUrl);
 					int count = 0;
-					while (m.find()){
+					while (searchWordMatcher.find()){
 						count++;
 					}
 					totalCount += count;
@@ -74,7 +81,16 @@ public class Main {
 				
 				if (entryDataParser.applyCCommand()) {					
 					totalCharNumber += stringFromUrl.length();
-					System.out.print("total char number: " + stringFromUrl.length());
+					System.out.println("total char number: " + stringFromUrl.length());
+				}
+				
+				if (entryDataParser.applyVCommand()) {
+					totalTimeScraping += timeScraping;
+					totalTimeProcessing += callBack.getTimeProcessing();
+					System.out.print("time spent scraping: " 
+				                    + (double)(timeScraping/1000) 
+				                    + " time spent processing: " 
+				                    + (double)(callBack.getTimeProcessing()/1000));
 				}
 			} catch (IOException ioex) {
 				System.out.println("IOException in count");
@@ -86,7 +102,13 @@ public class Main {
 			System.out.println("number of words " + entryDataParser.getSearchWords() + ": " + totalCount);
 		}
 		if (entryDataParser.applyCCommand()) {
-			System.out.print("total char number: " + totalCharNumber);
+			System.out.println("total char number: " + totalCharNumber);
+		}
+		if (entryDataParser.applyVCommand()) {
+			System.out.print("time spent scraping: " 
+		                    + (double)(totalTimeScraping/1000) 
+		                    + " time spent processing: " 
+		                    + (double)(totalTimeProcessing/1000));
 		}
 	}
 }
